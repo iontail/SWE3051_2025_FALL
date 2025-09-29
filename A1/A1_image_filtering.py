@@ -3,7 +3,7 @@ import numpy as np
 
 def pad_img(img: np.array, h_pad_size:int, w_pad_size: int):
     h, w = img.shape
-    padded_image = np.zeros([h + h_pad_size * 2, w + w_pad_size * 2], dtype=img.dtype)
+    padded_image = np.zeros((h + h_pad_size * 2, w + w_pad_size * 2), dtype=img.dtype)
 
     padded_image[h_pad_size:h_pad_size + h, w_pad_size:w_pad_size + w] = img[:, :]
 
@@ -24,36 +24,30 @@ def pad_img(img: np.array, h_pad_size:int, w_pad_size: int):
 
     return padded_image
 
-
-
-
-def cross_correlation_1d(img, kernel):
-    img = np.asarray(img)
-    kernel = np.asarray(img)
-
+def cross_correlation_1d(img: np.array, kernel: np.array):
     h, w = img.shape
-    kenel_size = kernel.shape
-
-    if kernel.shape[0]==1:
-        horizontal = True
-    elif kernel.shape[1]==1:
-        vertical = True
-    else:
-        raise ValueError(f'cross_correlation_1d function kernel should be vertical or horizontal. Got {kernel.shape} shape kernel.')
+    kernel_size = kernel.shape
+    print(kernel_size)
 
     # from the formula: '(img_size - kernel_size + 2 * padding)/stride + 1 = output_size',
     # the formula becomes 'padding = (kerne_size - 1) // 2' (cosider only odd size case)
-    h_pad_size = (kernel[0] - 1) // 2  
-    w_pad_sie =  (kenel_size[0] - 1) // 2
+    h_pad_size = (kernel_size[0] - 1) // 2  
+    w_pad_size =  (kernel_size[1] - 1) // 2
+    print(h_pad_size, w_pad_size)
 
-    if horizontal:
-        padded_img = None
+    padded_img = pad_img(img, h_pad_size, w_pad_size)
 
-    elif vertical:
-        padded_img = None
+    filtered_img = np.zeros((h, w), dtype=np.float32)
+    for i in range(h):
+        for j in range(w):
+            patch = padded_img[i:i + h_pad_size*2 + 1, j:j + w_pad_size*2 + 1]
+            filtered_img[i, j] = np.sum(patch * kernel)
+
+    return filtered_img
 
 
-def cross_correlation_1d(img, kernel):
+
+def cross_correlation_2d(img, kernel):
     """
     Assumes kernel size is odd.
     Args:
@@ -76,10 +70,13 @@ if __name__=="__main__":
     img = cv2.imread('./A1_Images/lenna.png', cv2.IMREAD_GRAYSCALE)
     print(img.shape[0])
     np_img = np.asarray(img)
-    padded_img = pad_img(np_img, 50, 50)
-    print(padded_img.shape)
 
-    cv2.imshow('Transformed Image', padded_img)
+    kernel = np.array([1/3, 1/3, 1/3]).reshape(1, 3)
+    filtered_img = cross_correlation_1d(np_img, kernel)
+    print(filtered_img.shape)
+
+
+    cv2.imshow('Transformed Image', filtered_img)
     cv2.waitKey(0)
 
     
