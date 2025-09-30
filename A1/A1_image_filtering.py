@@ -37,19 +37,20 @@ def cross_correlation_1d(img: np.array, kernel: np.array):
     padded_img = pad_img(img, h_pad_size, w_pad_size)
     
     filtered_img = np.zeros((h, w), dtype=img.dtype)
+    kernel = kernel.reshape(-1)
     if kernel_size[0] == 1: # horizontal kernel
         for i in range(h):
             for j in range(w):
-                patch = padded_img[i + h_pad_size, j:j + kernel_size[1]]
-                filtered_img[i, j] = np.sum(patch * kernel)
+                patch = padded_img[i + h_pad_size, j:j + kernel_size[1]].reshape(-1)
+                filtered_img[i, j] = np.dot(patch, kernel)
 
     else: # vertical kernel
         for i in range(h):
             for j in range(w):
                 patch = padded_img[i:i + kernel_size[0], j + w_pad_size]
-                filtered_img[i, j] = np.sum(patch * kernel)
+                filtered_img[i, j] = np.dot(patch, kernel)
 
-    return np.clip(filtered_img, 0, 255)
+    return filtered_img
 
 
 def cross_correlation_2d(img: np.array, kernel: np.array):
@@ -67,7 +68,7 @@ def cross_correlation_2d(img: np.array, kernel: np.array):
             patch = padded_img[i:i + kernel_size[0], j:j + kernel_size[1]]
             filtered_img[i, j] = np.sum(patch * kernel)
 
-    return np.clip(filtered_img, 0, 255)
+    return filtered_img
 
 def get_gaussian_filter_1d(size: int, sigma: float):
 
@@ -89,25 +90,90 @@ def get_gaussian_filter_2d(size: int, sigma: float):
     gaussian = horizontal_filter.T @ horizontal_filter
     return gaussian 
 
+def visualize_filtering(
+        img: np.array,
+        kerenl_size: list[int],
+        sigma_list: list[int],
+        name: str
+        ):
+    row = []
+    for k in kerenl_size:
+        row_imgs = []
+        for s in sigma_list:
+            filter = get_gaussian_filter_2d(k, s)
+            filtered_img = np.clip(cross_correlation_2d(img, filter), 0, 255).astype(np.uint8)
+
+            text = f"{k}x{k} s={s}"
+            cv2.putText(filtered_img, text, (15, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2)
+            row_imgs.append(filtered_img)
+
+        row.append(np.hstack(row_imgs))
+    out = np.vstack(row)
+
+    cv2.imwrite(f'./result/part_1_gaussian_filtered_{name}', out)
+    return out
+
+def visualize_filtering_difference(
+        img: np.array,
+        kerenl_size: list[int],
+        sigma_list: list[int]
+        ):
+    
+    row = []
+    difs = []
+    for k in kerenl_size:
+        row_imgs = []
+        for s in sigma_list:
+            filter_2d = get_gaussian_filter_2d(k, s)
+            filtered_img_2d_filter = np.clip(cross_correlation_2d(img, filter_2d), 0, 255)
+            
+
+            filter_1d = get_gaussian_filter_1d(k, s)
+            filtered_img_1d_filter = cross_correlation_1d(img, filter_1d.T)
+            filtered_img_1d_filter = np.clip(cross_correlation_1d(filtered_img_1d_filter, filter_1d), 0, 255)
+
+            dif = np.abs(filtered_img_2d_filter - filtered_img_1d_filter)
+            dif_sum = dif.sum()
+
+            text = f"{k}x{k} s={s}"
+            dif = dif.astype(np.uint8)
+            cv2.putText(dif, text, (15, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2)
+            row_imgs.append(dif)
+            difs.append(dif_sum)
+
+        row.append(np.hstack(row_imgs))
+    out = np.vstack(row)
+
+    difs = np.array(difs).reshape(len(kerenl_size), len(sigma_list))
+    return out, difs
 
 
 if __name__=="__main__":
-    img = cv2.imread('./A1_Images/lenna.png', cv2.IMREAD_GRAYSCALE)
-    print(img.shape[0])
-    np_img = np.asarray(img)
-    np_img = np_img.astype(np.float32)
+    lenna = cv2.imread('./A1_Images/lenna.png', cv2.IMREAD_GRAYSCALE)
+    shapes = cv2.imread('./A1_Images/shapes.png', cv2.IMREAD_GRAYSCALE)
+    lenna = np.asarray(lenna).astype(np.float32)
+    shapes = np.asarray(shapes).astype(np.float32)
 
-    
-    #kernel = np.array([1/25 for _ in range(25)]).reshape(5, 5)
-    kernel = get_gaussian_filter_1d(10, 10)
-    print(kernel.sum())
-    filtered_img = cross_correlation_1d(np_img, kernel)
 
-    cv2.imshow('Filtered Image', filtered_img.astype(np.uint8))
+    print(f"Gaussian Filter 1d (5, 1):\n{get_gaussian_filter_1d(5, 1)}")
+    print(f"Gaussian Filter 2d (5, 1):\n{get_gaussian_filter_2d(5, 1)}")
+
+    """
+    output = visualize_filtering(lenna, [5, 11, 17], [1, 6, 11], 'lenna.png')
+    cv2.imshow("Gaussian Filtered Images", output)
     cv2.waitKey(0)
 
+    output = visualize_filtering(shapes, [5, 11, 17], [1, 6, 11], 'shapes.png')
+    cv2.imshow("Gaussian Filtered Images", output)
+    cv2.waitKey(0)
+    """
 
+    lenna_dif_output, lenna_difs = visualize_filtering_difference(lenna, [5, 11, 17], [1, 6, 11])
+    print(f"Lenna Abosolute different summation:\n{lenna_difs}")
+    cv2.imshow("Gaussian Filtered Images Difference", lenna_dif_output)
+    cv2.waitKey(0)
 
-
-
-    
+    shapes_dif_output, shapes_difs = visualize_filtering_difference(shapes, [5, 11, 17], [1, 6, 11])
+    print(f"Shapes Abosolute different summation:\n{shapes_difs}")
+    cv2.imshow("Gaussian Filtered Images Difference", lenna_dif_output)
+    cv2.waitKey(0)
