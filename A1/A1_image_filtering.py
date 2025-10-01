@@ -173,15 +173,15 @@ if __name__=="__main__":
 
 
     lenna_dif_output, lenna_difs, times_1d, times_2d = visualize_filtering_difference(lenna, [5, 11, 17], [1, 6, 11])
-    print(f"Lenna - Computational time of Seperable filter:\n{times_1d}")
-    print(f"Lenna - Computational time of non-Seperable filter:\n{times_2d}")
-    print(f"Lenna - Abosolute different summation:\n{lenna_difs}")
+    print(f"Lenna - Computational Time of Applying Seperable filter:\n{times_1d}")
+    print(f"Lenna - Computational Time of Applying Non-Seperable filter:\n{times_2d}")
+    print(f"Lenna - Abosolute Different Summation:\n{lenna_difs}")
     cv2.imshow("Lenna - Gaussian Filtered Images Difference", lenna_dif_output)
     cv2.waitKey(1000)
 
     shapes_dif_output, shapes_difs, times_1d, times_2d = visualize_filtering_difference(shapes, [5, 11, 17], [1, 6, 11])
-    print(f"Shapes - Computational time of Seperable filter:\n{times_1d}")
-    print(f"shapes - Computational time of non-Seperable filter:\n{times_2d}")
-    print(f"Shapes - Abosolute different summation:\n{shapes_difs}")
+    print(f"Shapes - Computational Time of Applying Seperable filter:\n{times_1d}")
+    print(f"shapes - Computational Time of Applying Non-Seperable filter:\n{times_2d}")
+    print(f"Shapes - Abosolute Different Summation:\n{shapes_difs}")
     cv2.imshow("Shapes - Gaussian Filtered Images Difference", shapes_dif_output)
     cv2.waitKey(0)
