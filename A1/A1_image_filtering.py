@@ -15,7 +15,7 @@ def pad_img(img: np.array, h_pad_size:int, w_pad_size: int):
         padded_image[h_pad_size:h_pad_size + h, :w_pad_size] = img[:, 0:1]
         padded_image[h_pad_size:h_pad_size + h, w_pad_size + w:] = img[:, -1:]
 
-    if h_pad_size > 0 and w_pad_size: # pad corner
+    if h_pad_size > 0 and w_pad_size > 0: # pad corner
         padded_image[:h_pad_size, :w_pad_size] = img[0, 0]
         padded_image[:h_pad_size, w_pad_size + w:] = img[0, -1]
         padded_image[h_pad_size + h:, :w_pad_size] = img[-1, 0]
@@ -29,26 +29,28 @@ def cross_correlation_1d(img: np.array, kernel: np.array):
     kernel_size = kernel.shape
     
 
-    # from the formula: '(img_size - kernel_size + 2 * padding)/stride + 1 = output_size',
-    # the formula becomes 'padding = (kerne_size - 1) // 2' (cosider only odd size case)
+    # From the formula: '(img_size - kernel_size + 2 * padding)/stride + 1 = output_size', 
+    # the formula becomes 'padding = (kerne_size - 1) // 2' 
+    # when output_size == img_size (cosider only odd size case)
     h_pad_size = (kernel_size[0] - 1) // 2  
     w_pad_size =  (kernel_size[1] - 1) // 2
 
     padded_img = pad_img(img, h_pad_size, w_pad_size)
     
     filtered_img = np.zeros((h, w), dtype=img.dtype)
-    kernel = kernel.reshape(-1)
+
+    kernel = kernel.reshape(-1) # flatten
     if kernel_size[0] == 1: # horizontal kernel
         for i in range(h):
             for j in range(w):
-                patch = padded_img[i + h_pad_size, j:j + kernel_size[1]].reshape(-1)
-                filtered_img[i, j] = np.dot(patch, kernel)
+                patch = padded_img[i, j:j + kernel_size[1]].reshape(-1)
+                filtered_img[i, j] = np.sum(patch * kernel)
 
     else: # vertical kernel
         for i in range(h):
             for j in range(w):
-                patch = padded_img[i:i + kernel_size[0], j + w_pad_size]
-                filtered_img[i, j] = np.dot(patch, kernel)
+                patch = padded_img[i:i + kernel_size[0], j].reshape(-1)
+                filtered_img[i, j] = np.sum(patch * kernel)
 
     return filtered_img
 
@@ -96,6 +98,7 @@ def visualize_filtering(
         sigma_list: list[int],
         name: str
         ):
+    
     row = []
     for k in kerenl_size:
         row_imgs = []
@@ -110,7 +113,7 @@ def visualize_filtering(
         row.append(np.hstack(row_imgs))
     out = np.vstack(row)
 
-    cv2.imwrite(f'./result/part_1_gaussian_filtered_{name}', out)
+    cv2.imwrite(f'./result/part_1_gaussian_filtered_{name}.png', out)
     return out
 
 def visualize_filtering_difference(
@@ -134,13 +137,13 @@ def visualize_filtering_difference(
 
             dif = np.abs(filtered_img_2d_filter - filtered_img_1d_filter)
             dif_sum = dif.sum()
+            difs.append(dif_sum)
 
             text = f"{k}x{k} s={s}"
             dif = dif.astype(np.uint8)
-            cv2.putText(dif, text, (15, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 0), 2)
+            cv2.putText(dif, text, (15, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255, 255, 255), 2)
             row_imgs.append(dif)
-            difs.append(dif_sum)
-
+            
         row.append(np.hstack(row_imgs))
     out = np.vstack(row)
 
@@ -158,22 +161,13 @@ if __name__=="__main__":
     print(f"Gaussian Filter 1d (5, 1):\n{get_gaussian_filter_1d(5, 1)}")
     print(f"Gaussian Filter 2d (5, 1):\n{get_gaussian_filter_2d(5, 1)}")
 
-    """
-    output = visualize_filtering(lenna, [5, 11, 17], [1, 6, 11], 'lenna.png')
-    cv2.imshow("Gaussian Filtered Images", output)
-    cv2.waitKey(0)
-
-    output = visualize_filtering(shapes, [5, 11, 17], [1, 6, 11], 'shapes.png')
-    cv2.imshow("Gaussian Filtered Images", output)
-    cv2.waitKey(0)
-    """
 
     lenna_dif_output, lenna_difs = visualize_filtering_difference(lenna, [5, 11, 17], [1, 6, 11])
     print(f"Lenna Abosolute different summation:\n{lenna_difs}")
-    cv2.imshow("Gaussian Filtered Images Difference", lenna_dif_output)
+    cv2.imshow("Lenna Gaussian Filtered Images Difference", lenna_dif_output)
     cv2.waitKey(0)
 
     shapes_dif_output, shapes_difs = visualize_filtering_difference(shapes, [5, 11, 17], [1, 6, 11])
     print(f"Shapes Abosolute different summation:\n{shapes_difs}")
-    cv2.imshow("Gaussian Filtered Images Difference", lenna_dif_output)
+    cv2.imshow("Shapes Gaussian Filtered Images Difference", shapes_dif_output)
     cv2.waitKey(0)
