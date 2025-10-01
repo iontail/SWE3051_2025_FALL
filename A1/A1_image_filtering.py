@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
+import time
 
-def pad_img(img: np.array, h_pad_size:int, w_pad_size: int):
+def pad_img(img: np.ndarray, h_pad_size:int, w_pad_size: int):
     h, w = img.shape
     padded_image = np.zeros((h + h_pad_size * 2, w + w_pad_size * 2), dtype=img.dtype)
 
@@ -24,7 +25,7 @@ def pad_img(img: np.array, h_pad_size:int, w_pad_size: int):
 
     return padded_image
 
-def cross_correlation_1d(img: np.array, kernel: np.array):
+def cross_correlation_1d(img: np.ndarray, kernel: np.ndarray):
     h, w = img.shape
     kernel_size = kernel.shape
     
@@ -55,7 +56,7 @@ def cross_correlation_1d(img: np.array, kernel: np.array):
     return filtered_img
 
 
-def cross_correlation_2d(img: np.array, kernel: np.array):
+def cross_correlation_2d(img: np.ndarray, kernel: np.ndarray):
     h, w = img.shape
     kernel_size = kernel.shape
     
@@ -93,7 +94,7 @@ def get_gaussian_filter_2d(size: int, sigma: float):
     return gaussian 
 
 def visualize_filtering(
-        img: np.array,
+        img: np.ndarray,
         kerenl_size: list[int],
         sigma_list: list[int],
         name: str
@@ -117,23 +118,29 @@ def visualize_filtering(
     return out
 
 def visualize_filtering_difference(
-        img: np.array,
+        img: np.ndarray,
         kerenl_size: list[int],
         sigma_list: list[int]
         ):
     
     row = []
     difs = []
+    times_1d = []
+    times_2d = []
     for k in kerenl_size:
         row_imgs = []
         for s in sigma_list:
             filter_2d = get_gaussian_filter_2d(k, s)
+            start = time.time()
             filtered_img_2d_filter = np.clip(cross_correlation_2d(img, filter_2d), 0, 255)
+            times_2d.append(time.time() - start)
             
 
             filter_1d = get_gaussian_filter_1d(k, s)
+            start = time.time()
             filtered_img_1d_filter = cross_correlation_1d(img, filter_1d.T)
             filtered_img_1d_filter = np.clip(cross_correlation_1d(filtered_img_1d_filter, filter_1d), 0, 255)
+            times_1d.append(time.time() - start)
 
             dif = np.abs(filtered_img_2d_filter - filtered_img_1d_filter)
             dif_sum = dif.sum()
@@ -148,10 +155,13 @@ def visualize_filtering_difference(
     out = np.vstack(row)
 
     difs = np.array(difs).reshape(len(kerenl_size), len(sigma_list))
-    return out, difs
+    times_1d = np.array(times_1d).reshape(len(kerenl_size), len(sigma_list))
+    times_2d = np.array(times_2d).reshape(len(kerenl_size), len(sigma_list))
+    return out, difs, times_1d, times_2d
 
 
 if __name__=="__main__":
+    import time
     lenna = cv2.imread('./A1_Images/lenna.png', cv2.IMREAD_GRAYSCALE)
     shapes = cv2.imread('./A1_Images/shapes.png', cv2.IMREAD_GRAYSCALE)
     lenna = np.asarray(lenna).astype(np.float32)
@@ -162,12 +172,16 @@ if __name__=="__main__":
     print(f"Gaussian Filter 2d (5, 1):\n{get_gaussian_filter_2d(5, 1)}")
 
 
-    lenna_dif_output, lenna_difs = visualize_filtering_difference(lenna, [5, 11, 17], [1, 6, 11])
-    print(f"Lenna Abosolute different summation:\n{lenna_difs}")
-    cv2.imshow("Lenna Gaussian Filtered Images Difference", lenna_dif_output)
-    cv2.waitKey(0)
+    lenna_dif_output, lenna_difs, times_1d, times_2d = visualize_filtering_difference(lenna, [5, 11, 17], [1, 6, 11])
+    print(f"Lenna - Computational time of Seperable filter:\n{times_1d}")
+    print(f"Lenna - Computational time of non-Seperable filter:\n{times_2d}")
+    print(f"Lenna - Abosolute different summation:\n{lenna_difs}")
+    cv2.imshow("Lenna - Gaussian Filtered Images Difference", lenna_dif_output)
+    cv2.waitKey(1000)
 
-    shapes_dif_output, shapes_difs = visualize_filtering_difference(shapes, [5, 11, 17], [1, 6, 11])
-    print(f"Shapes Abosolute different summation:\n{shapes_difs}")
-    cv2.imshow("Shapes Gaussian Filtered Images Difference", shapes_dif_output)
+    shapes_dif_output, shapes_difs, times_1d, times_2d = visualize_filtering_difference(shapes, [5, 11, 17], [1, 6, 11])
+    print(f"Shapes - Computational time of Seperable filter:\n{times_1d}")
+    print(f"shapes - Computational time of non-Seperable filter:\n{times_2d}")
+    print(f"Shapes - Abosolute different summation:\n{shapes_difs}")
+    cv2.imshow("Shapes - Gaussian Filtered Images Difference", shapes_dif_output)
     cv2.waitKey(0)
