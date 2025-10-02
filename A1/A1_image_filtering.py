@@ -2,12 +2,14 @@ import cv2
 import numpy as np
 import time
 
-def pad_img(img: np.ndarray, h_pad_size:int, w_pad_size: int):
+def pad_img(img: np.ndarray, h_pad_size:int, w_pad_size: int, zero_pad: bool = False):
     h, w = img.shape
     padded_image = np.zeros((h + h_pad_size * 2, w + w_pad_size * 2), dtype=img.dtype)
 
     padded_image[h_pad_size:h_pad_size + h, w_pad_size:w_pad_size + w] = img[:, :]
-
+    if zero_pad:
+        return padded_image
+    
     if h_pad_size > 0:
         padded_image[:h_pad_size, w_pad_size:w_pad_size + w] = img[0:1, :]
         padded_image[h_pad_size + h:, w_pad_size:w_pad_size + w] = img[-1:, :]
@@ -25,7 +27,7 @@ def pad_img(img: np.ndarray, h_pad_size:int, w_pad_size: int):
 
     return padded_image
 
-def cross_correlation_1d(img: np.ndarray, kernel: np.ndarray):
+def cross_correlation_1d(img: np.ndarray, kernel: np.ndarray, zero_pad: bool = False):
     h, w = img.shape
     kernel_size = kernel.shape
     
@@ -36,7 +38,7 @@ def cross_correlation_1d(img: np.ndarray, kernel: np.ndarray):
     h_pad_size = (kernel_size[0] - 1) // 2  
     w_pad_size =  (kernel_size[1] - 1) // 2
 
-    padded_img = pad_img(img, h_pad_size, w_pad_size)
+    padded_img = pad_img(img, h_pad_size, w_pad_size, zero_pad=zero_pad)
     
     filtered_img = np.zeros((h, w), dtype=img.dtype)
 
@@ -56,14 +58,14 @@ def cross_correlation_1d(img: np.ndarray, kernel: np.ndarray):
     return filtered_img
 
 
-def cross_correlation_2d(img: np.ndarray, kernel: np.ndarray):
+def cross_correlation_2d(img: np.ndarray, kernel: np.ndarray, zero_pad: bool = False):
     h, w = img.shape
     kernel_size = kernel.shape
     
     h_pad_size = (kernel_size[0] - 1) // 2  
     w_pad_size =  (kernel_size[1] - 1) // 2
 
-    padded_img = pad_img(img, h_pad_size, w_pad_size)
+    padded_img = pad_img(img, h_pad_size, w_pad_size, zero_pad=zero_pad)
     
     filtered_img = np.zeros((h, w), dtype=img.dtype)
     for i in range(h):
