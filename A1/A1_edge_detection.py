@@ -92,7 +92,7 @@ if __name__=="__main__":
 
     start = time.time()
     lenna_nms = non_maximum_suppression_dir(lenna_mag, lenna_dir)
-    print(f"Lenna - Computational Time of NMS: {time.time() - start:.5f} sec")
+    print(f"Lenna - Computational Time of NMS Direction: {time.time() - start:.5f} sec")
 
     cv2.imwrite('./result/part_2_edge_sup_lenna.png', np.clip(lenna_nms, 0, 255).astype(np.uint8))
     cv2.imshow("NMS lenna.png", np.clip(lenna_mag, 0, 255).astype(np.uint8))

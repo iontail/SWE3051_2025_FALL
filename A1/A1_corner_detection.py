@@ -62,8 +62,31 @@ def compute_corner_response(img: np.ndarray):
     return response
 
 
-def non_maximum_suppresion_win(R: np.ndarray, winSize: np.ndarray):
-    pass
+def non_maximum_suppresion_win(R: np.ndarray, winSize: int = 11):
+    h, w = R.shape
+    h_pad_size = (winSize - 1) // 2
+    w_pad_size = (winSize - 1) // 2
+
+    padded_R = pad_img(R, h_pad_size, w_pad_size, zero_pad=True)
+
+    out = np.zeros_like(R, dtype=R.dtype)
+    for i in range(h):
+        for j in range(w):
+
+            center = padded_R[i, j]
+            if not(center > 0.1):
+                continue
+
+            patch = padded_R[i:i + winSize, j:j + winSize]
+            maximum = patch.max()
+
+            if maximum > center:
+                continue
+
+            out[i, j] = 1
+
+    return out 
+
 
 
 if __name__=="__main__":
@@ -95,11 +118,19 @@ if __name__=="__main__":
     cv2.imshow("Response Dot of lenna.png", lenna_corner)
     cv2.waitKey(1000)
 
+    start = time.time()
+    lenna_corner_detection = non_maximum_suppresion_win(lenna_response)
+    print(f"Lenna - Computational Time of NMS Window: {time.time() - start:.5f} sec")
+    ys, xs = np.where(lenna_corner_detection != 0)
+    for y, x in zip(ys, xs):
+        cv2.circle(lenna_bgr, (x, y), radius=5, color=(0, 255, 0))
 
-
-
+    cv2.imwrite('./result/part_3_corner_sup_lenna.png', lenna_bgr)
+    cv2.imshow("Response Dot of lenna.png", lenna_bgr)
+    cv2.waitKey(1000)
+    
     # ====== Shapes ======
-    """
+
     start = time.time()
     shapes_response = compute_corner_response(filtered_shapes)
     print(f"Shapes - Computational Time of Computing Corner Response: {time.time() - start:.5f} sec")
@@ -116,4 +147,14 @@ if __name__=="__main__":
     cv2.imshow("Response Dot of shapes.png", shapes_corner)
     cv2.waitKey(1000)
 
-    """
+    start = time.time()
+    shapes_corner_detection = non_maximum_suppresion_win(shapes_response)
+    print(f"Lenna - Computational Time of NMS Window: {time.time() - start:.5f} sec")
+    ys, xs = np.where(shapes_corner_detection != 0)
+    for y, x in zip(ys, xs):
+        cv2.circle(shapes_bgr, (x, y), radius=5, color=(0, 255, 0))
+
+    cv2.imwrite('./result/part_3_corner_sup_shapes.png', shapes_bgr)
+    cv2.imshow("Response Dot of shapes.png", shapes_bgr)
+    cv2.waitKey(1000)
+
