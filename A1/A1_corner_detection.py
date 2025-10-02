@@ -13,10 +13,20 @@ def compute_second_moment(grad_x: np.ndarray, grad_y: np.ndarray):
     Iyy = grad_y * grad_y
 
     window = np.ones((5, 5), dtype=grad_x.dtype)
+    n = 5*5
 
+    sum_x = cross_correlation_2d(grad_x, window)
+    sum_y = cross_correlation_2d(grad_y, window)
     xx = cross_correlation_2d(Ixx, kernel=window, zero_pad=True)
     xy = cross_correlation_2d(Ixy, kernel=window, zero_pad=True)
     yy = cross_correlation_2d(Iyy, kernel=window, zero_pad=True)
+
+    x_mean = sum_x / n
+    y_mean = sum_y / n
+
+    xx = xx - n * (x_mean * x_mean)
+    xy = xy - n * (x_mean * y_mean)
+    yy = yy - n * (y_mean * y_mean)
 
     return xx, xy, yy
 
@@ -47,13 +57,9 @@ def compute_corner_response(img: np.ndarray):
     response[response < 0] = 0
 
     r_min, r_max = response.min(), response.max()
-    response = (response - r_min / (r_max - r_min))
-
+    response = (response - r_min) / ((r_max - r_min) + 1e-6) # avoid division by zero
 
     return response
-
-
-
 
 
 if __name__=="__main__":
@@ -68,10 +74,21 @@ if __name__=="__main__":
     filtered_lenna = cross_correlation_2d(lenna, filter)
     filtered_shapes = cross_correlation_2d(shapes, filter)
 
-    
     # ====== Lenna ======
     start = time.time()
-    lenna_response = compute_corner_response(lenna)
-    print(lenna_response)
+    lenna_response = compute_corner_response(filtered_lenna)
     print(f"Lenna - Computational Time of Computing Corner Response: {time.time() - start:.5f} sec")
+    cv2.imwrite('./result/part_3_corner_raw_lenna.png', np.clip(lenna_response * 255, 0, 255).astype(np.uint8))
+    cv2.imshow("Response of lenna.png", np.clip(lenna_response * 255, 0, 255).astype(np.uint8))
+    cv2.waitKey(1000)
+
+
+    # ====== Shapes ======
+    start = time.time()
+    shapes_response = compute_corner_response(filtered_shapes)
+    print(f"Shapes - Computational Time of Computing Corner Response: {time.time() - start:.5f} sec")
+    cv2.imwrite('./result/part_3_corner_raw_lenna.png', np.clip(shapes_response * 255, 0, 255).astype(np.uint8))
+    cv2.imshow("Response of shapes.png", np.clip(shapes_response * 255, 0, 255).astype(np.uint8))
+    cv2.waitKey(0)
+    
 
