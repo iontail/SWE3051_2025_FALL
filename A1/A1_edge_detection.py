@@ -23,7 +23,6 @@ def compute_image_gradient(img: np.ndarray):
 
     mag = np.sqrt(grad_x**2 + grad_y**2)
     dir = np.arctan2(grad_y, grad_x)
-
     return mag, dir
 
 def quantize_gradient_dir(dir: np.ndarray):
@@ -49,7 +48,7 @@ def non_maximum_suppression_dir(mag: np.ndarray, dir: np.ndarray):
     q_dir = quantize_gradient_dir(dir)
 
     # TODO: how to handle if the comparison pixel does not exit?
-    # I simply padded image
+    # I simply padded the image with zero
     padded_mag = pad_img(mag, 1, 1, zero_pad=True)
 
     out = mag.copy() 
@@ -59,12 +58,10 @@ def non_maximum_suppression_dir(mag: np.ndarray, dir: np.ndarray):
 
             center = padded_mag[i + 1, j + 1]
             comparison_1 = padded_mag[i + 1 + dy, j + 1 + dx]
-            comparison_2 = padded_mag[i + 1 - dy, j + 1 - dx]
+            comparison_2 = padded_mag[i + 1 - dy, j + 1 - dx] # reversed direction by simply changing the sign
             
-
-            if center < comparison_1 or center < comparison_2:
+            if center <= comparison_1 or center <= comparison_2:
                 out[i, j] = 0
-
     return out
                 
 
@@ -80,39 +77,38 @@ if __name__=="__main__":
     filtered_lenna = cross_correlation_2d(lenna, filter)
     filtered_shapes = cross_correlation_2d(shapes, filter)
 
-    
     # ====== Lenna ======
+    # 2-2-d
     start = time.time()
     lenna_mag, lenna_dir = compute_image_gradient(filtered_lenna)
     print(f"Lenna - Computational Time of Applying Sobel filter: {time.time() - start:.5f} sec")
-
     cv2.imwrite('./result/part_2_edge_raw_lenna.png', np.clip(lenna_mag, 0, 255).astype(np.uint8))
     cv2.imshow("Sobel Filtered lenna.png", np.clip(lenna_mag, 0, 255).astype(np.uint8))
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
 
+    # 2-2-d
     start = time.time()
     lenna_nms = non_maximum_suppression_dir(lenna_mag, lenna_dir)
     print(f"Lenna - Computational Time of NMS Direction: {time.time() - start:.5f} sec")
-
     cv2.imwrite('./result/part_2_edge_sup_lenna.png', np.clip(lenna_nms, 0, 255).astype(np.uint8))
-    cv2.imshow("NMS lenna.png", np.clip(lenna_mag, 0, 255).astype(np.uint8))
-    cv2.waitKey(1000)
+    cv2.imshow("NMS lenna.png", np.clip(lenna_nms, 0, 255).astype(np.uint8))
+    cv2.waitKey(1)
 
 
     # ====== Shapes ======
+    # 2-2-d
     start = time.time()
     shapes_mag, shapes_dir = compute_image_gradient(filtered_shapes)
     print(f"Shapes - Computational Time of Applying Sobel filter: {time.time() - start:.5f} sec")
-
     cv2.imwrite('./result/part_2_edge_raw_shapes.png', np.clip(shapes_mag, 0, 255).astype(np.uint8))
     cv2.imshow("Sobel Filtered shapes.png", np.clip(shapes_mag, 0, 255).astype(np.uint8))
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
 
+    # 2-2-d
     start = time.time()
     shapes_nms = non_maximum_suppression_dir(shapes_mag, shapes_dir)
     print(f"Shapes - Computational Time of NMS: {time.time() - start:.5f} sec")
-
     cv2.imwrite('./result/part_2_edge_sup_shapes.png', np.clip(shapes_nms, 0, 255).astype(np.uint8))
     cv2.imshow("NMS shapes.png", np.clip(shapes_nms, 0, 255).astype(np.uint8))
-    cv2.waitKey(1000)
+    cv2.waitKey(0)
 

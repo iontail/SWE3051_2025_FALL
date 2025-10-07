@@ -44,13 +44,13 @@ def cross_correlation_1d(img: np.ndarray, kernel: np.ndarray, zero_pad: bool = F
     if kernel_size[0] == 1: # horizontal kernel
         for i in range(h):
             for j in range(w):
-                patch = padded_img[i, j:j + kernel_size[1]].reshape(-1)
+                patch = padded_img[i + h_pad_size, j:j + kernel_size[1]].reshape(-1)
                 filtered_img[i, j] = np.sum(patch * kernel)
 
     else: # vertical kernel
         for i in range(h):
             for j in range(w):
-                patch = padded_img[i:i + kernel_size[0], j].reshape(-1)
+                patch = padded_img[i:i + kernel_size[0], j + w_pad_size].reshape(-1)
                 filtered_img[i, j] = np.sum(patch * kernel)
 
     return filtered_img
