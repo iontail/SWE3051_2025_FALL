@@ -13,12 +13,9 @@ def compute_second_moment(grad_x: np.ndarray, grad_y: np.ndarray):
     Iyy = grad_y * grad_y
 
     window = np.ones((5, 5), dtype=grad_x.dtype)
-    n = 5*5
-
     xx = cross_correlation_2d(Ixx, kernel=window, zero_pad=True)
     xy = cross_correlation_2d(Ixy, kernel=window, zero_pad=True)
     yy = cross_correlation_2d(Iyy, kernel=window, zero_pad=True)
-
     return xx, xy, yy
 
 def compute_corner_response(img: np.ndarray):
