@@ -23,14 +23,12 @@ def pad_img(img: np.ndarray, h_pad_size:int, w_pad_size: int, zero_pad: bool = F
         padded_image[:h_pad_size, w_pad_size + w:] = img[0, -1]
         padded_image[h_pad_size + h:, :w_pad_size] = img[-1, 0]
         padded_image[h_pad_size + h:, w_pad_size + w:] = img[-1, -1]
-        
 
     return padded_image
 
 def cross_correlation_1d(img: np.ndarray, kernel: np.ndarray, zero_pad: bool = False):
     h, w = img.shape
     kernel_size = kernel.shape
-    
 
     # From the formula: '(img_size - kernel_size + 2 * padding)/stride + 1 = output_size', 
     # the formula becomes 'padding = (kerne_size - 1) // 2' 
@@ -81,16 +79,15 @@ def get_gaussian_filter_1d(size: int, sigma: float):
     idx = np.arange(-r, r+1, dtype=np.float32)
 
     # constant term is mutiplied to every filter entries
-    # as I normalized it, constant term can be dismissed
+    # constant term can be dismissed as the filter is normalized 
     gaussian = np.exp(-(idx**2) / (2 * sigma**2))
     filter = gaussian / gaussian.sum()
 
-    return filter.reshape(1, -1)
+    return filter.reshape(1, -1) # return horizontal kernel as default
 
 
 def get_gaussian_filter_2d(size: int, sigma: float):
-    # I only need 1d gaussian filters as 2d gaussian filter is seperable
-
+    # only need 1d gaussian filters because 2d gaussian filter is seperable
     horizontal_filter = get_gaussian_filter_1d(size, sigma)
     gaussian = horizontal_filter.T @ horizontal_filter
     return gaussian 
@@ -170,20 +167,32 @@ if __name__=="__main__":
     shapes = np.asarray(shapes).astype(np.float32)
 
 
+    # 1-2-c
     print(f"Gaussian Filter 1d (5, 1):\n{get_gaussian_filter_1d(5, 1)}")
     print(f"Gaussian Filter 2d (5, 1):\n{get_gaussian_filter_2d(5, 1)}")
 
+    # ====== Lenna ======
+    # 1-2-d
+    cv2.imshow("Lenna - Different Gaussian Filters Applied", visualize_filtering(lenna, [5, 11, 17], [1, 6, 11], 'lenna'))
+    cv2.waitKey(1)
 
+    # 1-2-e
     lenna_dif_output, lenna_difs, times_1d, times_2d = visualize_filtering_difference(lenna, [5, 11, 17], [1, 6, 11])
-    print(f"Lenna - Computational Time of Applying Seperable filter:\n{times_1d}")
-    print(f"Lenna - Computational Time of Applying Non-Seperable filter:\n{times_2d}")
+    print(f"Lenna - Computational Time of Applying Seperable filter(1D):\n{times_1d}")
+    print(f"Lenna - Computational Time of Applying Non-Seperable filter(2D):\n{times_2d}")
     print(f"Lenna - Abosolute Different Summation:\n{lenna_difs}")
     cv2.imshow("Lenna - Gaussian Filtered Images Difference", lenna_dif_output)
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
 
+    # ====== Shapes ======
+    # 1-2-d
+    cv2.imshow("Shapes - Different Gaussian Filters Applied", visualize_filtering(shapes, [5, 11, 17], [1, 6, 11], 'shapes'))
+    cv2.waitKey(1)
+
+    # 1-2-e
     shapes_dif_output, shapes_difs, times_1d, times_2d = visualize_filtering_difference(shapes, [5, 11, 17], [1, 6, 11])
-    print(f"Shapes - Computational Time of Applying Seperable filter:\n{times_1d}")
-    print(f"shapes - Computational Time of Applying Non-Seperable filter:\n{times_2d}")
+    print(f"Shapes - Computational Time of Applying Seperable filter(1D):\n{times_1d}")
+    print(f"shapes - Computational Time of Applying Non-Seperable filter(2D):\n{times_2d}")
     print(f"Shapes - Abosolute Different Summation:\n{shapes_difs}")
     cv2.imshow("Shapes - Gaussian Filtered Images Difference", shapes_dif_output)
     cv2.waitKey(0)
