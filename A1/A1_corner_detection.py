@@ -15,18 +15,9 @@ def compute_second_moment(grad_x: np.ndarray, grad_y: np.ndarray):
     window = np.ones((5, 5), dtype=grad_x.dtype)
     n = 5*5
 
-    sum_x = cross_correlation_2d(grad_x, window)
-    sum_y = cross_correlation_2d(grad_y, window)
     xx = cross_correlation_2d(Ixx, kernel=window, zero_pad=True)
     xy = cross_correlation_2d(Ixy, kernel=window, zero_pad=True)
     yy = cross_correlation_2d(Iyy, kernel=window, zero_pad=True)
-
-    x_mean = sum_x / n
-    y_mean = sum_y / n
-
-    xx = xx - n * (x_mean * x_mean)
-    xy = xy - n * (x_mean * y_mean)
-    yy = yy - n * (y_mean * y_mean)
 
     return xx, xy, yy
 
@@ -58,7 +49,6 @@ def compute_corner_response(img: np.ndarray):
 
     r_min, r_max = response.min(), response.max()
     response = (response - r_min) / ((r_max - r_min) + 1e-6) # avoid division by zero
-
     return response
 
 
@@ -72,21 +62,17 @@ def non_maximum_suppresion_win(R: np.ndarray, winSize: int = 11):
     out = np.zeros_like(R, dtype=R.dtype)
     for i in range(h):
         for j in range(w):
-
-            center = padded_R[i, j]
+            center = padded_R[i + h_pad_size, j + w_pad_size]
             if not(center > 0.1):
                 continue
 
             patch = padded_R[i:i + winSize, j:j + winSize]
-            maximum = patch.max()
 
+            maximum = patch.max()
             if maximum > center:
                 continue
-
             out[i, j] = 1
-
     return out 
-
 
 
 if __name__=="__main__":
@@ -97,18 +83,21 @@ if __name__=="__main__":
     lenna = np.asarray(lenna).astype(np.float32)
     shapes = np.asarray(shapes).astype(np.float32)
 
+    # 3-1
     filter = get_gaussian_filter_2d(7, 1.5)
     filtered_lenna = cross_correlation_2d(lenna, filter)
     filtered_shapes = cross_correlation_2d(shapes, filter)
 
     # ====== Lenna ======
+    # 3-2-e
     start = time.time()
     lenna_response = compute_corner_response(filtered_lenna)
     print(f"Lenna - Computational Time of Computing Corner Response: {time.time() - start:.5f} sec")
     cv2.imwrite('./result/part_3_corner_raw_lenna.png', np.clip(lenna_response * 255, 0, 255).astype(np.uint8))
     cv2.imshow("Response of lenna.png", np.clip(lenna_response * 255, 0, 255).astype(np.uint8))
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
 
+    # 3-3-b
     lenna_bgr = cv2.cvtColor(lenna.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     threshold_mask = lenna_response > 0.1
     lenna_corner = lenna_bgr.copy()
@@ -116,28 +105,31 @@ if __name__=="__main__":
 
     cv2.imwrite('./result/part_3_corner_bin_lenna.png', lenna_corner)
     cv2.imshow("Response Dot of lenna.png", lenna_corner)
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
 
+    # 3-3-d
     start = time.time()
     lenna_corner_detection = non_maximum_suppresion_win(lenna_response)
     print(f"Lenna - Computational Time of NMS Window: {time.time() - start:.5f} sec")
     ys, xs = np.where(lenna_corner_detection != 0)
     for y, x in zip(ys, xs):
-        cv2.circle(lenna_bgr, (x, y), radius=5, color=(0, 255, 0))
+        cv2.circle(lenna_bgr, (x, y), 5, (0, 255, 0), 2)
 
     cv2.imwrite('./result/part_3_corner_sup_lenna.png', lenna_bgr)
     cv2.imshow("Response Dot of lenna.png", lenna_bgr)
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
+
     
     # ====== Shapes ======
-
+    # 3-2-e
     start = time.time()
     shapes_response = compute_corner_response(filtered_shapes)
     print(f"Shapes - Computational Time of Computing Corner Response: {time.time() - start:.5f} sec")
     cv2.imwrite('./result/part_3_corner_raw_shapes.png', np.clip(shapes_response * 255, 0, 255).astype(np.uint8))
     cv2.imshow("Response of shapes.png", np.clip(shapes_response * 255, 0, 255).astype(np.uint8))
-    cv2.waitKey(0)
+    cv2.waitKey(1)
 
+    # 3-3-b
     shapes_bgr = cv2.cvtColor(shapes.astype(np.uint8), cv2.COLOR_GRAY2BGR)
     threshold_mask = shapes_response > 0.1
     shapes_corner = shapes_bgr.copy()
@@ -145,16 +137,17 @@ if __name__=="__main__":
 
     cv2.imwrite('./result/part_3_corner_bin_shapes.png', shapes_corner)
     cv2.imshow("Response Dot of shapes.png", shapes_corner)
-    cv2.waitKey(1000)
+    cv2.waitKey(1)
 
+    # 3-3-d
     start = time.time()
     shapes_corner_detection = non_maximum_suppresion_win(shapes_response)
-    print(f"Lenna - Computational Time of NMS Window: {time.time() - start:.5f} sec")
+    print(f"Shapes - Computational Time of NMS Window: {time.time() - start:.5f} sec")
     ys, xs = np.where(shapes_corner_detection != 0)
     for y, x in zip(ys, xs):
-        cv2.circle(shapes_bgr, (x, y), radius=5, color=(0, 255, 0))
+        cv2.circle(shapes_bgr, (x, y), 5, (0, 255, 0), 2)
 
     cv2.imwrite('./result/part_3_corner_sup_shapes.png', shapes_bgr)
     cv2.imshow("Response Dot of shapes.png", shapes_bgr)
-    cv2.waitKey(1000)
+    cv2.waitKey(0)
 
