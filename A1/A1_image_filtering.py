@@ -174,7 +174,7 @@ if __name__=="__main__":
     # ====== Lenna ======
     # 1-2-d
     cv2.imshow("Lenna - Different Gaussian Filters Applied", visualize_filtering(lenna, [5, 11, 17], [1, 6, 11], 'lenna'))
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 1-2-e
     lenna_dif_output, lenna_difs, times_1d, times_2d = visualize_filtering_difference(lenna, [5, 11, 17], [1, 6, 11])
@@ -182,12 +182,12 @@ if __name__=="__main__":
     print(f"Lenna - Computational Time of Applying Non-Seperable filter(2D):\n{times_2d}")
     print(f"Lenna - Abosolute Different Summation:\n{lenna_difs}")
     cv2.imshow("Lenna - Gaussian Filtered Images Difference", lenna_dif_output)
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # ====== Shapes ======
     # 1-2-d
     cv2.imshow("Shapes - Different Gaussian Filters Applied", visualize_filtering(shapes, [5, 11, 17], [1, 6, 11], 'shapes'))
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 1-2-e
     shapes_dif_output, shapes_difs, times_1d, times_2d = visualize_filtering_difference(shapes, [5, 11, 17], [1, 6, 11])

@@ -47,7 +47,7 @@ def non_maximum_suppression_dir(mag: np.ndarray, dir: np.ndarray):
 
     q_dir = quantize_gradient_dir(dir)
 
-    # TODO: how to handle if the comparison pixel does not exit?
+    # how to handle if the comparison pixel does not exit?
     # I simply padded the image with zero
     padded_mag = pad_img(mag, 1, 1, zero_pad=True)
 
@@ -84,7 +84,7 @@ if __name__=="__main__":
     print(f"Lenna - Computational Time of Applying Sobel filter: {time.time() - start:.5f} sec")
     cv2.imwrite('./result/part_2_edge_raw_lenna.png', np.clip(lenna_mag, 0, 255).astype(np.uint8))
     cv2.imshow("Sobel Filtered lenna.png", np.clip(lenna_mag, 0, 255).astype(np.uint8))
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 2-2-d
     start = time.time()
@@ -92,7 +92,7 @@ if __name__=="__main__":
     print(f"Lenna - Computational Time of NMS Direction: {time.time() - start:.5f} sec")
     cv2.imwrite('./result/part_2_edge_sup_lenna.png', np.clip(lenna_nms, 0, 255).astype(np.uint8))
     cv2.imshow("NMS lenna.png", np.clip(lenna_nms, 0, 255).astype(np.uint8))
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
 
     # ====== Shapes ======
@@ -102,7 +102,7 @@ if __name__=="__main__":
     print(f"Shapes - Computational Time of Applying Sobel filter: {time.time() - start:.5f} sec")
     cv2.imwrite('./result/part_2_edge_raw_shapes.png', np.clip(shapes_mag, 0, 255).astype(np.uint8))
     cv2.imshow("Sobel Filtered shapes.png", np.clip(shapes_mag, 0, 255).astype(np.uint8))
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 2-2-d
     start = time.time()

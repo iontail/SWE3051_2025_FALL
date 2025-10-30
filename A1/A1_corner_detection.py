@@ -92,7 +92,7 @@ if __name__=="__main__":
     print(f"Lenna - Computational Time of Computing Corner Response: {time.time() - start:.5f} sec")
     cv2.imwrite('./result/part_3_corner_raw_lenna.png', np.clip(lenna_response * 255, 0, 255).astype(np.uint8))
     cv2.imshow("Response of lenna.png", np.clip(lenna_response * 255, 0, 255).astype(np.uint8))
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 3-3-b
     lenna_bgr = cv2.cvtColor(lenna.astype(np.uint8), cv2.COLOR_GRAY2BGR)
@@ -102,7 +102,7 @@ if __name__=="__main__":
 
     cv2.imwrite('./result/part_3_corner_bin_lenna.png', lenna_corner)
     cv2.imshow("Response Dot of lenna.png", lenna_corner)
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 3-3-d
     start = time.time()
@@ -114,7 +114,7 @@ if __name__=="__main__":
 
     cv2.imwrite('./result/part_3_corner_sup_lenna.png', lenna_bgr)
     cv2.imshow("Response Dot of lenna.png", lenna_bgr)
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     
     # ====== Shapes ======
@@ -124,7 +124,7 @@ if __name__=="__main__":
     print(f"Shapes - Computational Time of Computing Corner Response: {time.time() - start:.5f} sec")
     cv2.imwrite('./result/part_3_corner_raw_shapes.png', np.clip(shapes_response * 255, 0, 255).astype(np.uint8))
     cv2.imshow("Response of shapes.png", np.clip(shapes_response * 255, 0, 255).astype(np.uint8))
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 3-3-b
     shapes_bgr = cv2.cvtColor(shapes.astype(np.uint8), cv2.COLOR_GRAY2BGR)
@@ -134,7 +134,7 @@ if __name__=="__main__":
 
     cv2.imwrite('./result/part_3_corner_bin_shapes.png', shapes_corner)
     cv2.imshow("Response Dot of shapes.png", shapes_corner)
-    cv2.waitKey(1)
+    cv2.waitKey(0)
 
     # 3-3-d
     start = time.time()
