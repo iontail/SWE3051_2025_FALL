@@ -11,7 +11,7 @@ def get_transformed_image(img: np.ndarray, m: np.ndarray):
     for i in range(h):
         for j in range(w):
             x = j - half_w
-            y = half_h - i # flip y-axis to match image y-coordinate
+            y = half_h - i
 
             t_x, t_y, t_z = np.dot(m, np.array([x, y, 1], dtype=np.float32))
             t_x = int(t_x / t_z) + 400
@@ -24,6 +24,9 @@ def get_transformed_image(img: np.ndarray, m: np.ndarray):
 
 
 def get_transformation_matrix(key: str, repeats: int = 1):
+
+    # as numpy array has filped y-axis
+    # I multiply -1 to the elements related to y-axis
 
     if key == 'a':
         pixel = -5 * repeats
@@ -61,19 +64,19 @@ def get_transformation_matrix(key: str, repeats: int = 1):
 
     elif key == 'x':
         # TODO: Is sequential shrinking operation is multiplicative or additive?
-        shrink_factor = 1.0 - (0.05 * repeats)
+        shrink_factor = 0.95 ** repeats
         m = np.array([[shrink_factor, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
 
     elif key == 'c':
-        enlarge_factor = 1.0 + (0.05 * repeats)
+        enlarge_factor = 1.05 ** repeats
         m = np.array([[enlarge_factor, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
 
     elif key == 'y':
-        shrink_factor = 1.0 - (0.05 * repeats)
+        shrink_factor = 0.95 ** repeats
         m = np.array([[1, 0, 0], [0, shrink_factor, 0], [0, 0, 1]], dtype=np.float32)
         
     elif key == 'u':
-        enlarge_factor = 1.0 + (0.05 * repeats)
+        enlarge_factor = 1.05 ** repeats
         m = np.array([[1, 0, 0], [0, enlarge_factor, 0], [0, 0, 1]], dtype=np.float32)
 
     return m
