@@ -37,7 +37,7 @@ def match_descriptors(des1: np.ndarray, des2: np.ndarray):
         second_best_dist = second_best_match[0]
         ratio = best_dist / (second_best_dist + 1e-6)
 
-        if ratio < 0.8:
+        if ratio < 0.75:
             matches.append((i, best_match[1], best_dist))
 
     matches.sort(key=lambda x: x[2])
@@ -141,8 +141,8 @@ def visualize_warp_composed(warped_img, composed_img, left_title, right_title, w
 
 if __name__ == "__main__":
     import random
-    np.random.seed(42)
-    random.seed(42)
+    np.random.seed(43)
+    random.seed(43)
 
     cover = cv2.imread('./A2_Images/cv_cover.jpg', cv2.IMREAD_GRAYSCALE)
     desk = cv2.imread('./A2_Images/cv_desk.png', cv2.IMREAD_GRAYSCALE)
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # 2-4-b Ransac Homography
     print("Computing Homography with RANSAC...")
     start = time.time()
-    H_ransac = compute_homography_ransac(src_pts, dst_pts, th=1)
+    H_ransac = compute_homography_ransac(src_pts, dst_pts, th=3)
     print(f"RANSAC took {time.time() - start:.2f} seconds")
 
     warped_ransac = cv2.warpPerspective(cover, H_ransac, (desk_w, desk_h))
