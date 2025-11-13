@@ -15,19 +15,32 @@ def hamming_distance(d1: np.ndarray, d2: np.ndarray) -> int:
     return int(np.sum(np.unpackbits(x)))
     
 
-def match_descriptors(des1: np.ndarray, des2: np.ndarray, top_k: int):
+def match_descriptors(des1: np.ndarray, des2: np.ndarray):
      
-    distances = []
+    matches = []
     n1 = des1.shape[0]
     n2 = des2.shape[0]
-
     for i in range(n1):
+        distances = []
         for j in range(n2):
             dist = hamming_distance(des1[i], des2[j])
-            distances.append((i, j, dist))
+            distances.append((dist, j))
+        
+        if len(distances) < 2:
+            continue
 
-    distances.sort(key=lambda x: x[2])
-    matches = distances[:top_k]
+        distances.sort(key=lambda x: x[0])
+        best_match = distances[0]
+        second_best_match = distances[1]
+
+        best_dist = best_match[0]
+        second_best_dist = second_best_match[0]
+        ratio = best_dist / (second_best_dist + 1e-6)
+
+        if ratio < 0.8:
+            matches.append((i, best_match[1], best_dist))
+
+    matches.sort(key=lambda x: x[2])
     return matches
     
 
@@ -127,15 +140,22 @@ def visualize_warp_composed(warped_img, composed_img, left_title, right_title, w
 
 
 if __name__ == "__main__":
+    import random
+    np.random.seed(42)
+    random.seed(42)
+
     cover = cv2.imread('./A2_Images/cv_cover.jpg', cv2.IMREAD_GRAYSCALE)
     desk = cv2.imread('./A2_Images/cv_desk.png', cv2.IMREAD_GRAYSCALE)
     hp_cover = cv2.imread('./A2_Images/hp_cover.jpg', cv2.IMREAD_GRAYSCALE)
+    
 
     cover_kp, cover_des = get_kp_des(cover)
     desk_kp, desk_des = get_kp_des(desk)
 
     # 2-1
-    matches = match_descriptors(desk_des, cover_des, top_k=100)
+    matches = match_descriptors(desk_des, cover_des)
+    if len(matches) < 15:
+        raise ValueError(f"The number of matches must be at least 15. But got {len(matches)}")
     visualize_matches(desk, cover, desk_kp, cover_kp, matches[:10])
 
     # 2-2
@@ -161,7 +181,7 @@ if __name__ == "__main__":
     # 2-4-b Ransac Homography
     print("Computing Homography with RANSAC...")
     start = time.time()
-    H_ransac = compute_homography_ransac(src_pts, dst_pts, th=0.5)
+    H_ransac = compute_homography_ransac(src_pts, dst_pts, th=1)
     print(f"RANSAC took {time.time() - start:.2f} seconds")
 
     warped_ransac = cv2.warpPerspective(cover, H_ransac, (desk_w, desk_h))
@@ -177,7 +197,8 @@ if __name__ == "__main__":
                             )
 
     # 2-4-c Apply Homography to HP Cover Image
-    warped_hp = cv2.warpPerspective(hp_cover, H_ransac, (desk_w, desk_h))
+    hp_cover_resized = cv2.resize(hp_cover, (cover.shape[1], cover.shape[0]))
+    warped_hp = cv2.warpPerspective(hp_cover_resized, H_ransac, (desk_w, desk_h))
     composed_hp = desk.copy()
     mask_hp = warped_hp > 0
     composed_hp[mask_hp] = warped_hp[mask_hp]
