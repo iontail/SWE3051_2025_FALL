@@ -70,52 +70,36 @@ def get_transformation_matrix(key: str):
         
     elif key == 'u':
         m = np.array([[1, 0, 0], [0, 1.05, 0], [0, 0, 1]], dtype=np.float32)
+    else:
+        m = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
 
     return m
 
-def apply_transformations(img: np.ndarray, prompt: str):
-    initial_state = img.copy()
-    for p in prompt:
-        current_p = p.strip()
-
-        if 48 <= ord(current_p[0]) <= 57:
-            repeats = int(current_p[:-1])
-            key = current_p[-1]
-        else:
-            repeats = 1
-            key = current_p[-1]
-
-        # non-transform keys
-        if key == 'h':
-            img = initial_state.copy()
-        elif key == 'q':
-            print("\'Quit\' command received. Terminate the transformation process.")
-            cv2.destroyAllWindows()
-            break
-        else:
-            m = get_transformation_matrix(key=key, repeats=repeats)
-            img = get_transformed_image(img, m)
-
-    return img
 
 def visualize_transformation(transformed_img: np.ndarray, name: str = 'smile'):
-    cv2.arrowedLine(transformed_img, (0,400), (801,400), (0, 0, 0), 2, tipLength=0.015)
-    cv2.arrowedLine(transformed_img, (400,801), (400,0), (0, 0, 0), 2, tipLength=0.015)
+    cv2.arrowedLine(transformed_img, (0,400), (800,400), (0, 0, 0), 2, tipLength=0.015)
+    cv2.arrowedLine(transformed_img, (400,800), (400,0), (0, 0, 0), 2, tipLength=0.015)
     cv2.imshow(f'Transformed Image - {name}', transformed_img.astype(np.uint8))
-    cv2.waitKey(0)
-
 
 if __name__ == "__main__":
     smile = cv2.imread('./A2_Images/smile.png', cv2.IMREAD_GRAYSCALE)
     smile = np.asarray(smile, dtype=np.float32)
 
+    m_total = get_transformation_matrix('initial')
+    transformed_img = get_transformed_image(smile, m_total)
     while True:
-        key = input()
-
-        if key == 'q':
-            break
-        elif key == 'h':
-            pass
-        else:
-            transformed_img = apply_transformations(smile, key)
         visualize_transformation(transformed_img, 'smile')
+        key = cv2.waitKey()
+
+        if key == ord('q'):
+            cv2.destroyAllWindows()
+            break
+
+        elif key == ord('h'):
+            m_total = get_transformation_matrix('initial')
+            transformed_img = get_transformed_image(smile, m_total)
+        else:
+            m = get_transformation_matrix(chr(key))
+            m_total = np.dot(m, m_total)
+        transformed_img = get_transformed_image(smile, m_total)
+
