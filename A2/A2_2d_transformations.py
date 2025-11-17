@@ -23,36 +23,32 @@ def get_transformed_image(img: np.ndarray, m: np.ndarray):
     return t_plane
 
 
-def get_transformation_matrix(key: str, repeats: int = 1):
+def get_transformation_matrix(key: str):
 
     # as numpy array has filped y-axis
     # I multiply -1 to the elements related to y-axis
 
     if key == 'a':
-        pixel = -5 * repeats
-        m = np.array([[1, 0, pixel], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[1, 0, -5], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
 
     elif key == 'd':
-        pixel = 5 * repeats
-        m = np.array([[1, 0, pixel], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[1, 0, 5], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
 
     elif key == 'w':
-        pixel = 5 * repeats
-        m = np.array([[1, 0, 0], [0, 1, pixel], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[1, 0, 0], [0, 1, 5], [0, 0, 1]], dtype=np.float32)
 
     elif key == 's':
-        pixel = -5 * repeats
-        m = np.array([[1, 0, 0], [0, 1, pixel], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[1, 0, 0], [0, 1, -5], [0, 0, 1]], dtype=np.float32)
 
     elif key == 'r':
-        cos = np.cos(np.deg2rad(5 * repeats))
-        sin = np.sin(np.deg2rad(5 * repeats))
+        cos = np.cos(np.deg2rad(5))
+        sin = np.sin(np.deg2rad(5))
 
         m = np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]], dtype=np.float32)
 
     elif key == 't':
-        cos = np.cos(np.deg2rad(-5 * repeats))
-        sin = np.sin(np.deg2rad(-5 * repeats))
+        cos = np.cos(np.deg2rad(-5))
+        sin = np.sin(np.deg2rad(-5))
 
         m = np.array([[cos, -sin, 0], [sin, cos, 0], [0, 0, 1]], dtype=np.float32)
 
@@ -64,20 +60,16 @@ def get_transformation_matrix(key: str, repeats: int = 1):
 
     elif key == 'x':
         # TODO: Is sequential shrinking operation is multiplicative or additive?
-        shrink_factor = 0.95 ** repeats
-        m = np.array([[shrink_factor, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[0.95, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
 
     elif key == 'c':
-        enlarge_factor = 1.05 ** repeats
-        m = np.array([[enlarge_factor, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[1.05, 0, 0], [0, 1, 0], [0, 0, 1]], dtype=np.float32)
 
     elif key == 'y':
-        shrink_factor = 0.95 ** repeats
-        m = np.array([[1, 0, 0], [0, shrink_factor, 0], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[1, 0, 0], [0, 0.95, 0], [0, 0, 1]], dtype=np.float32)
         
     elif key == 'u':
-        enlarge_factor = 1.05 ** repeats
-        m = np.array([[1, 0, 0], [0, enlarge_factor, 0], [0, 0, 1]], dtype=np.float32)
+        m = np.array([[1, 0, 0], [0, 1.05, 0], [0, 0, 1]], dtype=np.float32)
 
     return m
 
@@ -117,6 +109,13 @@ if __name__ == "__main__":
     smile = cv2.imread('./A2_Images/smile.png', cv2.IMREAD_GRAYSCALE)
     smile = np.asarray(smile, dtype=np.float32)
 
-    prompt = sys.stdin.readline().strip().split('+')
-    transformed_img = apply_transformations(smile, prompt)
-    visualize_transformation(transformed_img, 'smile')
+    while True:
+        key = input()
+
+        if key == 'q':
+            break
+        elif key == 'h':
+            pass
+        else:
+            transformed_img = apply_transformations(smile, key)
+        visualize_transformation(transformed_img, 'smile')
