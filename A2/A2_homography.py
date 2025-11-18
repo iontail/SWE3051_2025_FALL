@@ -96,7 +96,7 @@ def compute_homography(srcP, destP):
     H = Vt[-1, :].reshape(3, 3)
 
     H_final = np.linalg.inv(T_destP) @ H @ T_srcP
-    H_final = H_final / (H_final[2, 2] + 1e-6)  # make h9 = 1
+    H_final = H_final / (H_final[2, 2] + 1e-6)  # normalize
     return H_final
 
 
