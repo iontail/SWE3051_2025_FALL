@@ -47,12 +47,12 @@ if __name__ == "__main__":
     D_CNN = 512
     D_VLAD = K * 128 # 3584
     D = D_CNN + D_VLAD  # 4096
-    MAX_GAP = False
+    MAX_GAP = True
     TRAIN = False # Please set TRAIN = False when you test
 
     
     centers_path = f"./kmeans_centers_K{K}.npy"
-    out_path = "A3_2021312134.des"
+    out_path = "A3_2021312134_maxgap.des"
 
     # setup for reproducibility
     np.random.seed(42)
