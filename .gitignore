@@ -1,1 +1,6 @@
 __pycache__
+A3/*
+A3/*.pdf
+!A3/A3_P1_Data/*.py
+!A3/*.py
+!A3/*.npy
