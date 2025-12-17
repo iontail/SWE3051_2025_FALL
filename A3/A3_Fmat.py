@@ -1,6 +1,9 @@
 import time
 import cv2
+import random
 import numpy as np
+from A3_P1_Data.compute_avg_reproj_error import compute_avg_reproj_error
+
 
 
 # storing image sizes globally
@@ -118,9 +121,9 @@ def show_error(M: np.ndarray, name: str, th: float = 1.0, format: str = 'png'):
     raw_F = compute_F_raw(M)
     norm_F = compute_F_norm(M)
     mine_F = compute_F_mine(M, th)
-    error_raw = compute_distance(raw_F, x1, x2)
-    error_norm = compute_distance(norm_F, x1, x2)
-    error_mine = compute_distance(mine_F, x1, x2)
+    error_raw = compute_avg_reproj_error(M, raw_F)
+    error_norm = compute_avg_reproj_error(M, norm_F)
+    error_mine = compute_avg_reproj_error(M, mine_F)
 
     print(f"Average Reprojection Errors ({name}1.{format} and {name}2.{format})")
     print(f"  {'Raw':<7} = {np.mean(error_raw)}")
@@ -214,6 +217,10 @@ def draw_epipolar_demo(img1: np.ndarray, img2: np.ndarray, M: np.ndarray, F: np.
             break
 
 if __name__ == '__main__':
+
+    # setup for reproducibility
+    np.random.seed(42)
+    random.seed(42)
     
     temple1 = cv2.imread('./A3_P1_Data/temple1.png')
     temple1 = np.asarray(temple1, dtype=np.float32)
