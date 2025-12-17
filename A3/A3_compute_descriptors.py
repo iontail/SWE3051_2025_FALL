@@ -9,9 +9,30 @@ from vlad import VLAD
 def l2_normalize(v: np.ndarray, eps: float = 1e-12) -> np.ndarray:
     return v / (np.linalg.norm(v) + eps)
 
-def compute_gap(cnn_feat: np.ndarray) -> np.ndarray:
-    # (14,14,512) > (512,)
-    gap = cnn_feat.mean(axis=(0, 1)).astype(np.float32)
+def compute_gap(cnn_feat: np.ndarray, max_gap: bool = False) -> np.ndarray:
+
+    if not max_gap:
+        gap = cnn_feat.mean(axis=(0, 1)).astype(np.float32)  # (512,)
+    else:
+        # 7x7 max pooling with stride 7
+        # (14,14,512) -> (2,2,512)
+        pooled = np.zeros((2, 2, cnn_feat.shape[2]), dtype=np.float32)
+
+        for i in range(2):
+            for j in range(2):
+                h_start = i * 7
+                h_end = h_start + 7
+                w_start = j * 7
+                w_end = w_start + 7
+
+                pooled[i, j] = np.max(
+                    cnn_feat[h_start:h_end, w_start:w_end],
+                    axis=(0, 1)
+                )
+
+        # GAP on pooled feature map
+        gap = pooled.mean(axis=(0, 1))  # (512,)
+
     return l2_normalize(gap).astype(np.float32)
 
 def write_descriptors(path: str, descs: np.ndarray):
@@ -26,6 +47,7 @@ if __name__ == "__main__":
     D_CNN = 512
     D_VLAD = K * 128 # 3584
     D = D_CNN + D_VLAD  # 4096
+    MAX_GAP = False
     TRAIN = False # Please set TRAIN = False when you test
 
     
@@ -48,7 +70,7 @@ if __name__ == "__main__":
     for i in tqdm(range(N)):
         # cnn GAP (512)
         cnn = load_cnn_file(f"./features/cnn/{i:04d}.cnn")  # (14,14,512)
-        cnn_desc = compute_gap(cnn)                         # (512,)
+        cnn_desc = compute_gap(cnn, max_gap=MAX_GAP)                         # (512,)
 
         # sift VLAD (3584)
         sift = load_sift_file(f"./features/sift/{i:04d}.sift")  # (n,128)

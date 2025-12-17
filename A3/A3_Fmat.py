@@ -239,28 +239,18 @@ if __name__ == '__main__':
 
     M_temple = np.loadtxt('./A3_P1_Data/temple_matches.txt')
     set_image_sizes(temple1.shape[1], temple1.shape[0], temple2.shape[1], temple2.shape[0])
-    _, _, temple_F = show_error(M_temple, 'temple', th=1.0)
+    _, _, temple_F = show_error(M_temple, 'temple', th=0.9)
 
 
     M_house = np.loadtxt('./A3_P1_Data/house_matches.txt')
     set_image_sizes(house1.shape[1], house1.shape[0], house2.shape[1], house2.shape[0])
-    _, _, house_F = show_error(M_house, 'house', th=1.0,  format='jpg')
+    _, _, house_F = show_error(M_house, 'house', th=0.9,  format='jpg')
 
     
-
     M_library = np.loadtxt('./A3_P1_Data/library_matches.txt')
     set_image_sizes(library1.shape[1], library1.shape[0], library2.shape[1], library2.shape[0])
-    _, _, library_F = show_error(M_library, 'library', th=1.0, format='jpg')
-
+    _, _, library_F = show_error(M_library, 'library', th=0.9, format='jpg')
 
     draw_epipolar_demo(temple1.astype(np.uint8), temple2.astype(np.uint8), M_temple, temple_F, win_name='Temple Epipolar')
     draw_epipolar_demo(house1.astype(np.uint8), house2.astype(np.uint8), M_house, house_F, win_name='House Epipolar')
     draw_epipolar_demo(library1.astype(np.uint8), library2.astype(np.uint8), M_library, library_F, win_name='Library Epipolar')
-
-
-
-
-    
-
-
-    
