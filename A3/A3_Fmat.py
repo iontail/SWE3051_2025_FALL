@@ -126,37 +126,134 @@ def show_error(M: np.ndarray, name: str, th: float = 1.0, format: str = 'png'):
     print(f"  {'Raw':<7} = {np.mean(error_raw)}")
     print(f"  {'Norm':<7} = {np.mean(error_norm)}")
     print(f"  {'Mine':<7} = {np.mean(error_mine)}")
+    return raw_F, norm_F, mine_F
 
+# ====== Visualization ======
+def line_endpoints_in_image(line_abc: np.ndarray, w: int, h: int):
+    """
+    line_abc: (3,) where a x + b y + c = 0
+    Return:
+        ((x0,y0),(x1,y1)) as int tuples
+    """
+    a, b, c = float(line_abc[0]), float(line_abc[1]), float(line_abc[2])
+
+    pts = []
+
+    # x=0, x=w-1
+    if abs(b) > 0:
+        y0 = -(c + a * 0.0) / b
+        y1 = -(c + a * (w - 1.0)) / b
+        if 0.0 <= y0 <= (h - 1.0):
+            pts.append((0.0, y0))
+        if 0.0 <= y1 <= (h - 1.0):
+            pts.append((w - 1.0, y1))
+
+    # y=0, y=h-1
+    if abs(a) > 0:
+        x0 = -(c + b * 0.0) / a
+        x1 = -(c + b * (h - 1.0)) / a
+        if 0.0 <= x0 <= (w - 1.0):
+            pts.append((x0, 0.0))
+        if 0.0 <= x1 <= (w - 1.0):
+            pts.append((x1, h - 1.0))
+
+    # pick two farthest points
+    best = None
+    best_d = -1.0
+    for i in range(len(pts)):
+        for j in range(i + 1, len(pts)):
+            d = (pts[i][0] - pts[j][0])**2 + (pts[i][1] - pts[j][1])**2
+            if d > best_d:
+                best_d = d
+                best = (pts[i], pts[j])
+
+    (x0, y0), (x1, y1) = best
+    return (int(round(x0)), int(round(y0))), (int(round(x1)), int(round(y1)))
+
+
+def draw_epipolar_demo(img1: np.ndarray, img2: np.ndarray, M: np.ndarray, F: np.ndarray, win_name="Epipolar"):
+    h1, w1 = img1.shape[:2]
+    h2, w2 = img2.shape[:2]
+
+    colors = [(0,0,255), (0,255,0), (255,0,0)]  # BGR: red, green, blue
+
+    n = M.shape[0]
+    while True:
+        vis1 = img1.copy()
+        vis2 = img2.copy()
+
+        idx = np.random.choice(n, 3, replace=False)
+
+        for i, k in enumerate(idx):
+            color = colors[i]
+            x1, y1, x2, y2 = M[k]
+
+            p = np.array([x1, y1, 1.0], dtype=np.float64)
+            q = np.array([x2, y2, 1.0], dtype=np.float64)
+
+            l = F @ p      # line in img2
+            m = F.T @ q    # line in img1
+
+            cv2.circle(vis1, (int(round(x1)), int(round(y1))), 6, color, -1)
+            cv2.circle(vis2, (int(round(x2)), int(round(y2))), 6, color, -1)
+
+            seg2 = line_endpoints_in_image(l, w2, h2)
+            if seg2 is not None:
+                cv2.line(vis2, seg2[0], seg2[1], color, 2)
+
+            seg1 = line_endpoints_in_image(m, w1, h1)
+            if seg1 is not None:
+                cv2.line(vis1, seg1[0], seg1[1], color, 2)
+
+        show = np.concatenate([vis1, vis2], axis=1)
+        cv2.imshow(win_name, show)
+
+        key = cv2.waitKey(0) & 0xFF
+        if key == ord('q'):
+            cv2.destroyWindow(win_name)
+            break
 
 if __name__ == '__main__':
     
-    temple1 = cv2.imread('./A3_P1_Data/temple1.png', cv2.IMREAD_GRAYSCALE)
+    temple1 = cv2.imread('./A3_P1_Data/temple1.png')
     temple1 = np.asarray(temple1, dtype=np.float32)
-    temple2 = cv2.imread('./A3_P1_Data/temple2.png', cv2.IMREAD_GRAYSCALE)
+    temple2 = cv2.imread('./A3_P1_Data/temple2.png')
     temple2 = np.asarray(temple2, dtype=np.float32)
 
-    M = np.loadtxt('./A3_P1_Data/temple_matches.txt')
-    set_image_sizes(temple1.shape[1], temple1.shape[0], temple2.shape[1], temple2.shape[0])
-    show_error(M, 'temple', th=1.0)
-
-
-    house1 = cv2.imread('./A3_P1_Data/house1.jpg', cv2.IMREAD_GRAYSCALE)
+    house1 = cv2.imread('./A3_P1_Data/house1.jpg')
     house1 = np.asarray(house1, dtype=np.float32)
-    house2 = cv2.imread('./A3_P1_Data/house2.jpg', cv2.IMREAD_GRAYSCALE)
+    house2 = cv2.imread('./A3_P1_Data/house2.jpg')
     house2 = np.asarray(house2, dtype=np.float32)
 
-    M = np.loadtxt('./A3_P1_Data/house_matches.txt')
-    set_image_sizes(house1.shape[1], house1.shape[0], house2.shape[1], house2.shape[0])
-    show_error(M, 'house', th=1.0, format='jpg')
-
-    library1 = cv2.imread('./A3_P1_Data/library1.jpg', cv2.IMREAD_GRAYSCALE)
+    library1 = cv2.imread('./A3_P1_Data/library1.jpg')
     library1 = np.asarray(library1, dtype=np.float32)
-    library2 = cv2.imread('./A3_P1_Data/library2.jpg', cv2.IMREAD_GRAYSCALE)
+    library2 = cv2.imread('./A3_P1_Data/library2.jpg')
     library2 = np.asarray(library2, dtype=np.float32)
 
-    M = np.loadtxt('./A3_P1_Data/library_matches.txt')
+    M_temple = np.loadtxt('./A3_P1_Data/temple_matches.txt')
+    set_image_sizes(temple1.shape[1], temple1.shape[0], temple2.shape[1], temple2.shape[0])
+    _, _, temple_F = show_error(M_temple, 'temple', th=1.0)
+
+
+    M_house = np.loadtxt('./A3_P1_Data/house_matches.txt')
+    set_image_sizes(house1.shape[1], house1.shape[0], house2.shape[1], house2.shape[0])
+    _, _, house_F = show_error(M_house, 'house', th=1.0,  format='jpg')
+
+    
+
+    M_library = np.loadtxt('./A3_P1_Data/library_matches.txt')
     set_image_sizes(library1.shape[1], library1.shape[0], library2.shape[1], library2.shape[0])
-    show_error(M, 'library', th=1.0, format='jpg')
+    _, _, library_F = show_error(M_library, 'library', th=1.0, format='jpg')
+
+
+    draw_epipolar_demo(temple1.astype(np.uint8), temple2.astype(np.uint8), M_temple, temple_F, win_name='Temple Epipolar')
+    draw_epipolar_demo(house1.astype(np.uint8), house2.astype(np.uint8), M_house, house_F, win_name='House Epipolar')
+    draw_epipolar_demo(library1.astype(np.uint8), library2.astype(np.uint8), M_library, library_F, win_name='Library Epipolar')
+
+
+
+
+    
 
 
     
