@@ -29,7 +29,7 @@ def compute_F_raw(M: np.ndarray):
     F = Vt[-1, :]
     F = F.reshape(3, 3)
 
-    # Rank-2 constraint
+    # rank-2 constraint
     U, S, Vt = np.linalg.svd(F)
     S[-1] = 0.0
     F = U @ np.diag(S) @ Vt
@@ -86,8 +86,8 @@ def compute_F_mine(M: np.ndarray, th: float = 1.0):
     n = M.shape[0]
 
     # homogeneous coordinates
-    x1 = np.stack([M[:, 0], M[:, 1], np.ones(n)], axis=1)  # (n,3)
-    x2 = np.stack([M[:, 2], M[:, 3], np.ones(n)], axis=1)  # (n,3)
+    x1 = np.stack([M[:, 0], M[:, 1], np.ones(n)], axis=1) # (n,3)
+    x2 = np.stack([M[:, 2], M[:, 3], np.ones(n)], axis=1) # (n,3)
 
     best_inlier = None
     best_cnt = 0
@@ -194,8 +194,8 @@ def draw_epipolar_demo(img1: np.ndarray, img2: np.ndarray, M: np.ndarray, F: np.
             p = np.array([x1, y1, 1.0], dtype=np.float64)
             q = np.array([x2, y2, 1.0], dtype=np.float64)
 
-            l = F @ p      # line in img2
-            m = F.T @ q    # line in img1
+            l = F @ p # line in img2
+            m = F.T @ q # line in img1
 
             cv2.circle(vis1, (int(round(x1)), int(round(y1))), 6, color, -1)
             cv2.circle(vis2, (int(round(x2)), int(round(y2))), 6, color, -1)

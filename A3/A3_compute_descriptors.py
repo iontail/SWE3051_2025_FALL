@@ -12,7 +12,7 @@ def l2_normalize(v: np.ndarray, eps: float = 1e-12) -> np.ndarray:
 def compute_gap(cnn_feat: np.ndarray, max_gap: bool = False) -> np.ndarray:
 
     if not max_gap:
-        gap = cnn_feat.mean(axis=(0, 1)).astype(np.float32)  # (512,)
+        gap = cnn_feat.mean(axis=(0, 1)).astype(np.float32) # (512,)
     else:
         # 7x7 max pooling with stride 7
         # (14,14,512) -> (2,2,512)
@@ -31,7 +31,7 @@ def compute_gap(cnn_feat: np.ndarray, max_gap: bool = False) -> np.ndarray:
                 )
 
         # GAP on pooled feature map
-        gap = pooled.mean(axis=(0, 1))  # (512,)
+        gap = pooled.mean(axis=(0, 1)) # (512,)
 
     return l2_normalize(gap).astype(np.float32)
 
@@ -69,12 +69,12 @@ if __name__ == "__main__":
     descs = np.zeros((N, D), dtype=np.float32)
     for i in tqdm(range(N)):
         # cnn GAP (512)
-        cnn = load_cnn_file(f"./features/cnn/{i:04d}.cnn")  # (14,14,512)
-        cnn_desc = compute_gap(cnn, max_gap=MAX_GAP)                         # (512,)
+        cnn = load_cnn_file(f"./features/cnn/{i:04d}.cnn") # (14,14,512)
+        cnn_desc = compute_gap(cnn, max_gap=MAX_GAP) # (512,)
 
         # sift VLAD (3584)
-        sift = load_sift_file(f"./features/sift/{i:04d}.sift")  # (n,128)
-        vlad_desc = vlad.predict(sift)                           # (3584,)
+        sift = load_sift_file(f"./features/sift/{i:04d}.sift") # (n,128)
+        vlad_desc = vlad.predict(sift)                          # (3584,)
 
         # concat
         desc = np.concatenate([cnn_desc, vlad_desc], axis=0).astype(np.float32)

@@ -7,7 +7,7 @@ class VLAD:
     def __init__(self, k: int = 28, seed: int = 42):
         self.k = k
         self.seed = seed
-        self.centers = None  # (K,128)
+        self.centers = None # (K,128)
 
     def fit(self, n_images: int = 2000, sift_path: str = "./features/sift"):
         feats = []
@@ -15,7 +15,7 @@ class VLAD:
             sift = load_sift_file(f"{sift_path}/{i:04d}.sift")
             feats.append(sift)
 
-        X = np.vstack(feats)  # (total_SIFT, 128)
+        X = np.vstack(feats) # (total_SIFT, 128)
 
         kmeans = KMeans(
             n_clusters=self.k,
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     vlad = VLAD(k=28, seed=42)
     
     vlad.fit(n_images=2000, sift_path="./features/sift")
-    centers_path = vlad.save()  # "kmeans_centers_K28.npy"
+    centers_path = vlad.save() # "kmeans_centers_K28.npy"
     print("saved:", centers_path)
 
     vlad.load(centers_path)
